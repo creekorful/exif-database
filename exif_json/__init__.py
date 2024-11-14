@@ -4,6 +4,64 @@ from datetime import datetime
 _file_date_format = "%Y:%m:%d %H:%M:%S%z"
 _original_date_format = "%Y:%m:%d %H:%M:%S.%f%z"
 
+_date_fields = {
+    'file_modification_date/time': _file_date_format,
+    'file_access_date/time': _file_date_format,
+    'file_inode_change_date/time': _file_date_format,
+    'date/time_original': _original_date_format,
+    'create_date': _original_date_format,
+    'modify_date': _original_date_format,
+}
+
+_integer_fields = [
+    'image_width',
+    'image_height',
+    'iso',
+    'exposure_time',
+    'shutter_count',
+    'shutter_speed',
+    'jpg_from_raw_start',
+    'jpg_from_raw_length',
+    'thumbnail_offset',
+    'thumbnail_length',
+    'sr2_sub_ifd_offset',
+    'sr2_sub_ifd_length',
+    'exif_image_width',
+    'exif_image_height',
+    'sony_exposure_time',
+    'shutter_count_2',
+    'sony_exposure_time_2',
+    'stops_above_base_iso',
+    'sony_iso',
+    'iso_setting',
+    'iso_auto_min',
+    'iso_auto_max',
+    'bits_per_sample',
+    'strip_byte_counts',
+    'rows_per_strip',
+    'strip_offsets',
+    'x_resolution',
+    'y_resolution',
+    'samples_per_pixel',
+    'sequence_file_number',
+    'digital_zoom_ratio',
+    'sequence_image_number',
+    'focus_position_2',
+]
+
+_decimal_fields = [
+    'aperture',
+    'megapixels',
+    'light_value',
+    'blue_balance',
+    'sony_f_number',
+    'sony_max_aperture_value',
+    'sony_f_number_2',
+    'f_number',
+    'max_aperture_value',
+    'brightness_value',
+]
+
 
 def execute_exiftool(img_file: str) -> dict:
     res = subprocess.run(
@@ -21,17 +79,16 @@ def execute_exiftool(img_file: str) -> dict:
         parts = line.split(':', 1)
         exif_metadata[parts[0].strip().lower().replace(' ', '_')] = parts[1].strip()
 
-    # Handle dates
-    date_fields = {
-        'file_modification_date/time': _file_date_format,
-        'file_access_date/time': _file_date_format,
-        'file_inode_change_date/time': _file_date_format,
-        'date/time_original': _original_date_format,
-        'create_date': _original_date_format,
-    }
-
-    for (date_field, date_format) in date_fields.items():
+    for (date_field, date_format) in _date_fields.items():
         if date_field in exif_metadata:
             exif_metadata[date_field] = datetime.strptime(exif_metadata[date_field], date_format)
+
+    for field in _integer_fields:
+        if field in exif_metadata:
+            exif_metadata[field] = int(exif_metadata[field])
+
+    for field in _decimal_fields:
+        if field in exif_metadata:
+            exif_metadata[field] = float(exif_metadata[field])
 
     return exif_metadata
