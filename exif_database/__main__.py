@@ -2,6 +2,7 @@ import hashlib
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from pymongo import MongoClient
 
@@ -28,11 +29,18 @@ if __name__ == '__main__':
     database = mongo.exif_database
     collection = database.pictures
 
-    picture_metadata = _execute_exiftool(sys.argv[1])
+    pictures_metadata = []
 
-    # Append MongoDB identifier
-    picture_metadata['_id'] = hashlib.sha256(sys.argv[1].encode('utf-8')).hexdigest()
-    picture_metadata['path'] = sys.argv[1]
+    for file in Path(sys.argv[1]).rglob("*.ARW"):
+        filename = os.fsdecode(file)
+        print(filename)
+
+        picture_metadata = _execute_exiftool(filename)
+        pictures_metadata.append(picture_metadata)
+
+        # Append MongoDB identifier
+        picture_metadata['_id'] = hashlib.sha1(filename.lower().encode('utf-8')).hexdigest()
+        picture_metadata['path'] = sys.argv[1]
 
     # Insert into MongoDB
-    collection.insert_one(picture_metadata)
+    collection.insert_many(pictures_metadata)
