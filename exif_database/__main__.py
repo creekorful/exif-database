@@ -45,6 +45,10 @@ if __name__ == '__main__':
     # Load saved pictures cache
     saved_pictures = _load_pictures_cache()
 
+    # Keep track of processed pictures
+    processed_pictures = 0
+    max_processed_pictures = None if len(sys.argv) < 3 else int(sys.argv[2])
+
     for file in Path(sys.argv[1]).rglob("*.ARW"):
         filename = os.fsdecode(file)
 
@@ -62,6 +66,11 @@ if __name__ == '__main__':
         picture_metadata['path'] = filename
 
         saved_pictures[picture_metadata['path']] = True
+
+        processed_pictures = processed_pictures + 1
+
+        if max_processed_pictures is not None and processed_pictures >= max_processed_pictures:
+            break
 
     # Insert into MongoDB
     if len(metadata_pictures) > 0:
