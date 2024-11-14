@@ -37,7 +37,7 @@ def _get_make_pictures_cache_path():
 if __name__ == '__main__':
     # Authenticate against MongoDB server
     mongo = MongoClient(os.environ['MONGO_URI'])
-    database = mongo.exif_database
+    database = mongo.exif_metadata
     collection = database.pictures
 
     metadata_pictures = []
