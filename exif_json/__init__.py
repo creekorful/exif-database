@@ -17,9 +17,7 @@ _integer_fields = [
     'image_width',
     'image_height',
     'iso',
-    'exposure_time',
     'shutter_count',
-    'shutter_speed',
     'jpg_from_raw_start',
     'jpg_from_raw_length',
     'thumbnail_offset',
@@ -29,9 +27,7 @@ _integer_fields = [
     'exif_image_width',
     'exif_image_height',
     'shutter_count_2',
-    'stops_above_base_iso',
     'sony_iso',
-    'iso_setting',
     'iso_auto_min',
     'iso_auto_max',
     'bits_per_sample',
@@ -58,8 +54,7 @@ _decimal_fields = [
     'f_number',
     'max_aperture_value',
     'brightness_value',
-    'sony_exposure_time',
-    'sony_exposure_time_2',
+    'stops_above_base_iso',
 ]
 
 
