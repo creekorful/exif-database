@@ -28,9 +28,7 @@ _integer_fields = [
     'sr2_sub_ifd_length',
     'exif_image_width',
     'exif_image_height',
-    'sony_exposure_time',
     'shutter_count_2',
-    'sony_exposure_time_2',
     'stops_above_base_iso',
     'sony_iso',
     'iso_setting',
@@ -60,6 +58,8 @@ _decimal_fields = [
     'f_number',
     'max_aperture_value',
     'brightness_value',
+    'sony_exposure_time',
+    'sony_exposure_time_2',
 ]
 
 
@@ -85,10 +85,18 @@ def execute_exiftool(img_file: str) -> dict:
 
     for field in _integer_fields:
         if field in exif_metadata:
-            exif_metadata[field] = int(exif_metadata[field])
+            try:
+                exif_metadata[field] = int(exif_metadata[field])
+            except ValueError as e:
+                print(f'Failed to convert {field} ({exif_metadata[field]}) to an integer.')
+                raise e
 
     for field in _decimal_fields:
         if field in exif_metadata:
-            exif_metadata[field] = float(exif_metadata[field])
+            try:
+                exif_metadata[field] = float(exif_metadata[field])
+            except ValueError as e:
+                print(f'Failed to convert {field} ({exif_metadata[field]}) to a float.')
+                raise e
 
     return exif_metadata
