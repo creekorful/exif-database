@@ -5,6 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from platformdirs import user_data_dir
 from pymongo import MongoClient
 
 
@@ -24,6 +25,30 @@ def _execute_exiftool(img_file: str) -> dict:
     return exif_metadata
 
 
+def _load_pictures_cache() -> dict:
+    file_path = _get_make_pictures_cache_path()
+
+    try:
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
+def _save_pictures_cache(pictures: dict):
+    file_path = _get_make_pictures_cache_path()
+
+    with open(file_path, 'w') as f:
+        json.dump(pictures, f)
+
+
+def _get_make_pictures_cache_path():
+    data_dir = user_data_dir('exif-database', 'creekorful')
+    Path(data_dir).mkdir(parents=True, exist_ok=True)
+
+    return os.path.join(data_dir, 'exif-database.json')
+
+
 if __name__ == '__main__':
     # Authenticate against MongoDB server
     mongo = MongoClient(os.environ['MONGO_URI'])
@@ -33,11 +58,7 @@ if __name__ == '__main__':
     metadata_pictures = []
 
     # Load saved pictures cache
-    try:
-        with open('exif-database.json', 'r') as f:
-            saved_pictures = json.load(f)
-    except FileNotFoundError:
-        saved_pictures = {}
+    saved_pictures = _load_pictures_cache()
 
     for file in Path(sys.argv[1]).rglob("*.ARW"):
         filename = os.fsdecode(file)
@@ -58,8 +79,8 @@ if __name__ == '__main__':
         saved_pictures[picture_metadata['path']] = True
 
     # Insert into MongoDB
-    collection.insert_many(metadata_pictures)
+    if len(metadata_pictures) > 0:
+        collection.insert_many(metadata_pictures)
 
     # Save saved pictures cache
-    with open('exif-database.json', 'w') as f:
-        json.dump(saved_pictures, f)
+    _save_pictures_cache(saved_pictures)
