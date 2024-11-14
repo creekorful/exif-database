@@ -1,28 +1,13 @@
 import hashlib
 import json
 import os
-import subprocess
 import sys
 from pathlib import Path
 
 from platformdirs import user_data_dir
 from pymongo import MongoClient
 
-
-def _execute_exiftool(img_file: str) -> dict:
-    res = subprocess.run(
-        ['exiftool', img_file],
-        capture_output=True,
-        text=True,
-    )
-
-    exif_metadata = {}
-
-    for line in res.stdout.splitlines():
-        parts = line.split(':', 1)
-        exif_metadata[parts[0].strip().lower().replace(' ', '_')] = parts[1].strip()
-
-    return exif_metadata
+from exif_json import execute_exiftool
 
 
 def _load_pictures_cache() -> dict:
@@ -69,7 +54,7 @@ if __name__ == '__main__':
 
         print(f'Uploading {filename}')
 
-        picture_metadata = _execute_exiftool(filename)
+        picture_metadata = execute_exiftool(filename)
         metadata_pictures.append(picture_metadata)
 
         # Append MongoDB identifier
