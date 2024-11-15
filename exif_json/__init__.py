@@ -74,9 +74,13 @@ def execute_exiftool(img_file: str) -> dict:
         parts = line.split(':', 1)
         exif_metadata[parts[0].strip().lower().replace(' ', '_')] = parts[1].strip()
 
-    for (date_field, date_format) in _date_fields.items():
-        if date_field in exif_metadata:
-            exif_metadata[date_field] = datetime.strptime(exif_metadata[date_field], date_format)
+    for (field, date_format) in _date_fields.items():
+        if field in exif_metadata:
+            try:
+                exif_metadata[field] = datetime.strptime(exif_metadata[field], date_format)
+            except ValueError as e:
+                print(f'Failed to convert {field} ({exif_metadata[field]}) to a datetime.')
+                raise e
 
     for field in _integer_fields:
         if field in exif_metadata:
