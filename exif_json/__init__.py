@@ -1,16 +1,18 @@
 import subprocess
 from datetime import datetime
+from typing import List
 
 _file_date_format = "%Y:%m:%d %H:%M:%S%z"
 _original_date_format = "%Y:%m:%d %H:%M:%S.%f%z"
+_original_date_format_fallback = "%Y:%m:%d %H:%M:%S.%f"
 
 _date_fields = {
-    'file_modification_date/time': _file_date_format,
-    'file_access_date/time': _file_date_format,
-    'file_inode_change_date/time': _file_date_format,
-    'date/time_original': _original_date_format,
-    'create_date': _original_date_format,
-    'modify_date': _original_date_format,
+    'file_modification_date/time': [_file_date_format],
+    'file_access_date/time': [_file_date_format],
+    'file_inode_change_date/time': [_file_date_format],
+    'date/time_original': [_original_date_format, _original_date_format_fallback],
+    'create_date': [_original_date_format, _original_date_format_fallback],
+    'modify_date': [_original_date_format, _original_date_format_fallback],
 }
 
 _integer_fields = [
@@ -58,6 +60,16 @@ _decimal_fields = [
 ]
 
 
+def _parse_datetime(raw_value: str, available_formats: List[str]) -> datetime:
+    for available_format in available_formats:
+        try:
+            return datetime.strptime(raw_value, available_format)
+        except ValueError:
+            continue
+
+    raise ValueError(f"Could not parse datetime '{raw_value}' ({available_formats})")
+
+
 def execute_exiftool(img_file: str) -> dict:
     res = subprocess.run(
         ['exiftool', img_file],
@@ -74,10 +86,10 @@ def execute_exiftool(img_file: str) -> dict:
         parts = line.split(':', 1)
         exif_metadata[parts[0].strip().lower().replace(' ', '_')] = parts[1].strip()
 
-    for (field, date_format) in _date_fields.items():
+    for (field, date_formats) in _date_fields.items():
         if field in exif_metadata:
             try:
-                exif_metadata[field] = datetime.strptime(exif_metadata[field], date_format)
+                exif_metadata[field] = _parse_datetime(exif_metadata[field], date_formats)
             except ValueError as e:
                 print(f'Failed to convert {field} ({exif_metadata[field]}) to a datetime.')
                 raise e
