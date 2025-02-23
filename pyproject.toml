@@ -1,0 +1,31 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "exif-database"
+version = "0.1.0"
+authors = [
+    { name = "Aloïs Micard", email = "alois@micard.lu" },
+]
+description = "Dump pictures metadata into a MongoDB database for statistics purposes"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pymongo>=4.10",
+    "platformdirs>=4.3",
+]
+
+[project.urls]
+Homepage = "https://git.creekorful.cloud/creekorful/exif-database"
+Issues = "https://git.creekorful.cloud/creekorful/exif-database/issues"
+Changelog = "https://git.creekorful.cloud/creekorful/exif-database/src/branch/main/Changelog.md"
+
+[license]
+file = 'LICENSE.txt'

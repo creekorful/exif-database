@@ -1,21 +1,26 @@
+"""
+exif-database.exiftool: Python wrapper around exiftool(1)
+"""
+
 import subprocess
+import sys
 from datetime import datetime
 from typing import List
 
-_file_date_format = "%Y:%m:%d %H:%M:%S%z"
-_original_date_format = "%Y:%m:%d %H:%M:%S.%f%z"
-_original_date_format_fallback = "%Y:%m:%d %H:%M:%S.%f"
+_FILE_DATE_FORMAT = "%Y:%m:%d %H:%M:%S%z"
+_ORIGINAL_DATE_FORMAT = "%Y:%m:%d %H:%M:%S.%f%z"
+_ORIGINAL_DATE_FORMAT_FALLBACK = "%Y:%m:%d %H:%M:%S.%f"
 
-_date_fields = {
-    'file_modification_date/time': [_file_date_format],
-    'file_access_date/time': [_file_date_format],
-    'file_inode_change_date/time': [_file_date_format],
-    'date/time_original': [_original_date_format, _original_date_format_fallback],
-    'create_date': [_original_date_format, _original_date_format_fallback],
-    'modify_date': [_original_date_format, _original_date_format_fallback],
+_DATE_FIELDS = {
+    'file_modification_date/time': [_FILE_DATE_FORMAT],
+    'file_access_date/time': [_FILE_DATE_FORMAT],
+    'file_inode_change_date/time': [_FILE_DATE_FORMAT],
+    'date/time_original': [_ORIGINAL_DATE_FORMAT, _ORIGINAL_DATE_FORMAT_FALLBACK],
+    'create_date': [_ORIGINAL_DATE_FORMAT, _ORIGINAL_DATE_FORMAT_FALLBACK],
+    'modify_date': [_ORIGINAL_DATE_FORMAT, _ORIGINAL_DATE_FORMAT_FALLBACK],
 }
 
-_integer_fields = [
+_INTEGER_FIELDS = [
     'image_width',
     'image_height',
     'iso',
@@ -45,7 +50,7 @@ _integer_fields = [
     'focus_position_2',
 ]
 
-_decimal_fields = [
+_DECIMAL_FIELDS = [
     'aperture',
     'megapixels',
     'light_value',
@@ -71,14 +76,17 @@ def _parse_datetime(raw_value: str, available_formats: List[str]) -> datetime:
 
 
 def execute_exiftool(img_file: str) -> dict:
+    """
+    Execute exiftool against given image and return results as a dictionary.
+    :param img_file: path to image file
+    :return: dictionary of exif attributes
+    """
     res = subprocess.run(
         ['exiftool', img_file],
         capture_output=True,
         text=True,
+        check=True,
     )
-
-    if res.returncode != 0:
-        raise Exception(res.stderr)
 
     exif_metadata = {}
 
@@ -86,7 +94,7 @@ def execute_exiftool(img_file: str) -> dict:
         parts = line.split(':', 1)
         exif_metadata[parts[0].strip().lower().replace(' ', '_')] = parts[1].strip()
 
-    for (field, date_formats) in _date_fields.items():
+    for (field, date_formats) in _DATE_FIELDS.items():
         if field in exif_metadata:
             try:
                 exif_metadata[field] = _parse_datetime(exif_metadata[field], date_formats)
@@ -94,7 +102,7 @@ def execute_exiftool(img_file: str) -> dict:
                 print(f'Failed to convert {field} ({exif_metadata[field]}) to a datetime.')
                 raise e
 
-    for field in _integer_fields:
+    for field in _INTEGER_FIELDS:
         if field in exif_metadata:
             try:
                 exif_metadata[field] = int(exif_metadata[field])
@@ -102,7 +110,7 @@ def execute_exiftool(img_file: str) -> dict:
                 print(f'Failed to convert {field} ({exif_metadata[field]}) to an integer.')
                 raise e
 
-    for field in _decimal_fields:
+    for field in _DECIMAL_FIELDS:
         if field in exif_metadata:
             try:
                 exif_metadata[field] = float(exif_metadata[field])
@@ -111,3 +119,7 @@ def execute_exiftool(img_file: str) -> dict:
                 raise e
 
     return exif_metadata
+
+
+if __name__ == '__main__':
+    print(execute_exiftool(sys.argv[1]))

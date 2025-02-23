@@ -1,3 +1,9 @@
+# pylint: disable=C0103
+
+"""
+exif-database: Dump pictures metadata into a MongoDB database for statistics purposes
+"""
+
 import hashlib
 import json
 import os
@@ -7,9 +13,9 @@ from pathlib import Path
 from platformdirs import user_data_dir
 from pymongo import MongoClient
 
-from exif_json import execute_exiftool
+from exif_database.exiftool import execute_exiftool
 
-_allowed_extensions = [
+_ALLOWED_EXTENSIONS = [
     '.ARW',
     '.NEF',
 ]
@@ -19,7 +25,7 @@ def _load_pictures_cache() -> dict:
     _file_path = _get_make_pictures_cache_path()
 
     try:
-        with open(_file_path, 'r') as f:
+        with open(_file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
@@ -28,7 +34,7 @@ def _load_pictures_cache() -> dict:
 def _save_pictures_cache(_pictures: dict):
     _file_path = _get_make_pictures_cache_path()
 
-    with open(_file_path, 'w') as f:
+    with open(_file_path, 'w', encoding='utf-8') as f:
         json.dump(_pictures, f)
 
 
@@ -40,7 +46,7 @@ def _get_make_pictures_cache_path():
 
 
 def _is_extension_allowed(_filename: str) -> bool:
-    for _allowed_extension in _allowed_extensions:
+    for _allowed_extension in _ALLOWED_EXTENSIONS:
         if _filename.endswith(_allowed_extension):
             return True
 
