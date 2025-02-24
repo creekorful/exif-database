@@ -1,7 +1,7 @@
 """
 exif-database.exiftool: Python wrapper around exiftool(1)
 """
-
+import json
 import subprocess
 import sys
 from datetime import datetime
@@ -122,4 +122,4 @@ def execute_exiftool(img_file: str) -> dict:
 
 
 if __name__ == '__main__':
-    print(execute_exiftool(sys.argv[1]))
+    print(json.dumps(execute_exiftool(sys.argv[1]), default=str))
